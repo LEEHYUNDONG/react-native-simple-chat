@@ -1,4 +1,4 @@
 import * as firebase from "firebase";
-import config from "../../firebase";
+import config from "../../firebase.json";
 
-const app = firebase.initilizeApp(config);
+const app = firebase.initializeApp(config);
