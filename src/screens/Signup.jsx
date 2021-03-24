@@ -1,8 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import styled from "styled-components/native";
 import {Button, Image, Input } from "../components";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { validateEmail, removeWhitespace } from "../utils/common";
+import {validateEmail, removeWhitespace} from "../utils/common";
+import {Alert} from 'react-native';
+import {signup} from "../utils/firebase";
+import {ProgressContext} from '../contexts';
 
 const Container = styled.View`
   flex: 1;
@@ -22,6 +25,9 @@ const ErrorText = styled.Text`
 `;
 
 const URL="https://firebasestorage.googleapis.com/v0/b/react-native-simple-chat-3dc07.appspot.com/o/profile.jpg?alt=media";
+
+
+
 const Signup = () => {
   const [name, setName]=useState("");
   const [email, setEmail]=useState('');
@@ -36,7 +42,9 @@ const Signup = () => {
   const passwordConfirmRef=useRef();
 
   const didMountRef=useRef();
-  
+  const {spinner}=useContext(ProgressContext);
+
+
   useEffect(() => {
     if(didMountRef.current){
     let _errorMessage="";
@@ -65,7 +73,21 @@ const Signup = () => {
     );
   }, [name, email, password, passwordConfirm, errorMessage]);
   
-  const _handleSignupButtonPress=() => {};
+  const _handleSignupButtonPress=async () => {
+    const {spinner}=useContext(ProgressContext);
+    try {
+      spinner.start();
+      const user = await signup({ email, password, name, photoUrl });
+      console.log(user);
+      Alert.alert("Signup Success", user.email);
+    } catch (e) {
+      Alert.alert("Signup Error", e.message);
+    } finally {
+      spinner.stop();
+      //navigation.navigate("Login");
+    }
+  };
+
 
   return (
     <KeyboardAwareScrollView extraScrollHeight={20}>
@@ -74,7 +96,7 @@ const Signup = () => {
           rounded
           url={photoUrl}
           showButton
-        onChangeImage={url => setPhotoUrl(url)}
+          onChangeImage={url => setPhotoUrl(url)}
         />
         <Input
           label="Name"
@@ -104,7 +126,7 @@ const Signup = () => {
           value={password}
           onChangeText={text => setPassword(removeWhitespace(text))}
           onSubmitEditing={() => passwordConfirmRef.current.focus()}          
-          placeholder="Name"
+          placeholder="Password"
           returnKeyType="done"
         />
         <Input
@@ -113,7 +135,7 @@ const Signup = () => {
           value={passwordConfirm}
           onChangeText={text => setPasswordConfirm(removeWhitespace(text))}
           onSubmitEditing={_handleSignupButtonPress}
-          placeholder="Password"
+          placeholder="Password Confirm"
           returnKeyType="done"
           ispassword
         />
@@ -122,7 +144,8 @@ const Signup = () => {
           title="Signup"
           onPress={_handleSignupButtonPress}
           disabled={disabled}
-          />
+          
+        />
       </Container>
     </KeyboardAwareScrollView>
   );
