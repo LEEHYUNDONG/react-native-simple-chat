@@ -1,18 +1,19 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components/native";
-import { Keyboard } from "react-native";
 import { Image, Input, Button } from "../components";
-import images from "../utils/images";
-import {TouchableWithoutFeedback} from "react-native-gesture-handler";
-import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
+import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { validateEmail, removeWhitespace } from "../utils/common";
+import {  useSafeAreaInsets  } from "react-native-safe-area-context";
 
 const Container = styled.View`
   flex: 1;
   justify-content: center;
   align-items: center;
-  background-color: ${({  theme  }) => theme.background};
-  padding: 20px;
+  background-color: ${({ theme }) => theme.background};
+  padding: 0 20px;
+  padding-top: ${({ insets: { top } }) => top}px;
+  padding-bottom: ${({ insets: { bottom } }) => bottom}px;
 `;
 
 const ErrorText = styled.Text`
@@ -27,12 +28,17 @@ const ErrorText = styled.Text`
 const URL =
   "https://firebasestorage.googleapis.com/v0/b/react-native-simple-chat-3dc07.appspot.com/o/logo.png?alt=media";
 
-
-const Login=({navigation}) => {
-  const [email, setEmail]=useState('');
-  const [password, setPassword]=useState('');
-  const passwordRef=useRef();
+const Login = ({ navigation }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const passwordRef = useRef();
   const [errorMessage, setErrorMessage] = useState("");
+  const [disabled, setDisabled]   =   useState(true);
+  const insets   =   useSafeAreaInsets();
+
+  useEffect(() => {
+    setDisabled(!(email && password && !errorMessage));
+  }, [email, password, errorMessage]);
 
   const _handleEmailChange = email => {
     const changedEmail = removeWhitespace(email);
@@ -45,45 +51,46 @@ const Login=({navigation}) => {
     setPassword(removeWhitespace(password));
   };
 
-  const _handleLoginButtonPress=() => {};
+  const _handleLoginButtonPress = () => {};
 
-  
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{flex: 1}}
-      extraScrollHeight={20}
-    >
-    <Container>
-      <Image url={URL} imageStyle={{borderRadius: 8}} />
-      <Input
-        label="Email"
-        value={email}
-        onChangeText={_handleEmailChange}
-        onSubmitEditing={() => passwordRef.current.focus()}
-        placeholder="Email"
-        returnKeyType="next"
-      />
-      <Input
-        ref={passwordRef}
-        label="Password"
-        value={password}
-        onChangeText={_handlePasswordChange}
-        onSubmitEditing={_handleLoginButtonPress}
-        placeholder="Password"
-        returnKeyType="done"
-        isPassword
+      contentContainerStyle={{ flex: 1 }}
+      extraScrollHeight={20}>
+      <Container insets={insets}>
+        <Image url={URL} imageStyle={{ borderRadius: 8 }} />
+        <Input
+          label="Email"
+          value={email}
+          onChangeText={_handleEmailChange}
+          onSubmitEditing={() => passwordRef.current.focus()}
+          placeholder="Email"
+          returnKeyType="next"
+        />
+        <Input
+          ref={passwordRef}
+          label="Password"
+          value={password}
+          onChangeText={_handlePasswordChange}
+          onSubmitEditing={_handleLoginButtonPress}
+          placeholder="Password"
+          returnKeyType="done"
+          isPassword
         />
         <ErrorText>{errorMessage}</ErrorText>
-        <Button title="Login" onPress={_handleLoginButtonPress} />
+        <Button
+          title="Login"
+          onPress={_handleLoginButtonPress}
+          disabled={disabled}
+        />
         <Button
           title="Sign up with Email"
-          onPress={() => navigation.navigate('Signup')}
+          onPress={() => navigation.navigate("Signup")}
           isFilled={false}
         />
       </Container>
-      </KeyboardAwareScrollView>
+    </KeyboardAwareScrollView>
   );
 };
 
 export default Login;
-//<Button title="Signup" onPress={() => navigation.navigate("Signup")} />
