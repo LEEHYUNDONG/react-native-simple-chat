@@ -7,7 +7,7 @@ import { validateEmail, removeWhitespace } from "../utils/common";
 import {  useSafeAreaInsets  } from "react-native-safe-area-context";
 import { Alert } from "react-native";
 import { login } from "../utils/firebase";
-import {ProgressContext} from '../contexts';
+import { ProgressContext, UserContext } from "../contexts";
 
 
 const Container = styled.View`
@@ -33,13 +33,14 @@ const URL =
   "https://firebasestorage.googleapis.com/v0/b/react-native-simple-chat-3dc07.appspot.com/o/logo.png?alt=media";
 
 const Login = ({ navigation }) => {
+  const { dispatch } = useContext(UserContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const passwordRef = useRef();
   const [errorMessage, setErrorMessage] = useState("");
-  const [disabled, setDisabled]   =   useState(true);
-  const insets   =   useSafeAreaInsets();
-  const {spinner}=useContext(ProgressContext);
+  const [disabled, setDisabled] = useState(true);
+  const insets = useSafeAreaInsets();
+  const { spinner } = useContext(ProgressContext);
 
   useEffect(() => {
     setDisabled(!(email && password && !errorMessage));
@@ -59,7 +60,8 @@ const Login = ({ navigation }) => {
   const _handleLoginButtonPress = async () => {
     try {
       spinner.start();
-      const user = await login({ email, password });
+      const user  =  await login({  email, password  });
+      dispatch(user);
       Alert.alert("Login Success", user.email);
     } catch (e) {
       Alert.alert("Login Error", e.message);
@@ -67,7 +69,6 @@ const Login = ({ navigation }) => {
       spinner.stop();
     }
   };
-
 
   return (
     <KeyboardAwareScrollView

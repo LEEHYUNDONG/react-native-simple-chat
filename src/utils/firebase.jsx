@@ -1,17 +1,8 @@
-import * as firebase from "firebase";
-import "firebase/auth";
+import * as firebase from 'firebase';
+import 'firebase/firestore';
+import config from '../../firebase.json';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyC1rm3jp2FlHgBEpqBPXHqmmLpZALAUVps",
-  authDomain: "react-native-simple-chat-3dc07.firebaseapp.com",
-  projectId: "react-native-simple-chat-3dc07",
-  storageBucket: "react-native-simple-chat-3dc07.appspot.com",
-  messagingSenderId: "773716480521",
-  appId: "1:773716480521:web:45ffeb5ea52de8c0ba9ed8",
-  measurementId: "G-2WB0PYLXRK"
-};
-
-const app = firebase.initializeApp(firebaseConfig);
+const app = firebase.initializeApp(config);
 
 const Auth = app.auth();
 
@@ -27,30 +18,73 @@ const uploadImage = async uri => {
       resolve(xhr.response);
     };
     xhr.onerror = function (e) {
-      reject(new TypeError("Network request failed"));
+      reject(new TypeError('Network request failed'));
     };
-
-    xhr.responseType = "blob";
-    xhr.open("GET", uri, true);
+    xhr.responseType = 'blob';
+    xhr.open('GET', uri, true);
     xhr.send(null);
   });
+
   const user = Auth.currentUser;
   const ref = app.storage().ref(`/profile/${user.uid}/photo.png`);
-  const snapshot = await ref.put(blob, { contentType: "image/png" });
+  const snapshot = await ref.put(blob, { contentType: 'image/png' });
 
   blob.close();
   return await snapshot.ref.getDownloadURL();
 };
 
-
 export const signup = async ({ email, password, name, photoUrl }) => {
   const { user } = await Auth.createUserWithEmailAndPassword(email, password);
-  const storageUrl = photoUrl.startsWith("https")
+  const storageUrl = photoUrl.startsWith('https')
     ? photoUrl
     : await uploadImage(photoUrl);
   await user.updateProfile({
     displayName: name,
-    photoURL: storageUrl
+    photoURL: storageUrl,
   });
   return user;
+};
+
+export const logout = async () => {
+  return await Auth.signOut();
+};
+
+export const getCurrentUser = () => {
+  const { uid, displayName, email, photoURL } = Auth.currentUser;
+  return { uid, name: displayName, email, photoUrl: photoURL };
+};
+
+export const updateUserPhoto = async photoUrl => {
+  const user = Auth.currentUser;
+  const storageUrl = photoUrl.startsWith('https')
+    ? photoUrl
+    : await uploadImage(photoUrl);
+  await user.updateProfile({ photoURL: storageUrl });
+  return { name: user.displayName, email: user.email, photoUrl: user.photoURL };
+};
+
+export const DB = firebase.firestore();
+
+export const createChannel = async ({ title, description }) => {
+  const newChannelRef = DB.collection('channels').doc();
+  const id = newChannelRef.id;
+  const newChannel = {
+    id,
+    title,
+    description,
+    createdAt: Date.now(),
+  };
+  await newChannelRef.set(newChannel);
+  return id;
+};
+
+export const createMessage = async ({ channelId, message }) => {
+  return await DB.collection('channels')
+    .doc(channelId)
+    .collection('messages')
+    .doc(message._id)
+    .set({
+      ...message,
+      createdAt: Date.now(),
+    });
 };

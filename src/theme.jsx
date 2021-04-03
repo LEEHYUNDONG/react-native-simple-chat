@@ -22,5 +22,15 @@ export const theme = {
   imageButtonBackground: colors.grey_1,
   imageButtonIcon: colors.black,
   spinnerBackground: colors.black,
-  spinnerIndicator: colors.white
+  spinnerIndicator: colors.white,
+  tabActiveColor: colors.blue,
+  tabInactiveColor: colors.grey_1,
+  buttonLogout: colors.red,
+  inputDisabledBackground: colors.grey_0,
+  listBorder: colors.black,
+  listTime: colors.grey_1,
+  listDescription: colors.grey_1,
+  listIcon: colors.black,
+  sendButtonActivate: colors.black,
+  sendButtonInactive: colors.grey_0
 };
